@@ -114,6 +114,10 @@ use_cocos2dx_compile_define(cocos2d)
 use_cocos2dx_compile_options(cocos2d)
 
 # use all platform related system libs
+if(POLICY CMP0072)
+	set(OpenGL_GL_PREFERENCE GLVND)
+endif()
+
 use_cocos2dx_libs_depend(cocos2d)
 
 target_include_directories(cocos2d
