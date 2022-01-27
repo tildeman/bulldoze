@@ -39,15 +39,20 @@ public:
 	int virus_count=30;
 	double tank_speed=2;
 	double tank_turnspeed=1.5;
-	char keys=0;
+	char keys;
 	bool tank_dbhb=0;
 	bool virus_dbhb=0;
+	bool debug_keys=0;
+	bool active=1;
+	bool left_border_collision=0;
 	std::vector<cocos2d::Sprite*> viruslist;
 	cocos2d::Sprite* tank;
 	std::vector<cocos2d::Sprite*> tank_coords;
 	std::vector<std::vector<cocos2d::Sprite*>> virus_coords;
+	cocos2d::Label* check_keys;
 	void move();
 	void kill_bulldozed();
+	void check_collision();
 	cocos2d::Rect get_tankhitbox();
 	std::vector<cocos2d::Rect> get_virushitboxes();
 

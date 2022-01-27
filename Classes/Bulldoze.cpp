@@ -30,7 +30,6 @@ USING_NS_CC;
 using namespace ui;
 
 double pi=3.141592653589793;
-int key_is_pressed=0;
 
 Rect intersect(Rect a, Rect b){
 	int x1=std::max(a.getMinX(),b.getMinX()), x2=std::min(a.getMaxX(),b.getMaxX()), y1=std::max(a.getMinY(),b.getMinY()), y2=std::min(a.getMaxY(),b.getMaxY());
@@ -140,6 +139,14 @@ bool Bulldoze::init()
 		}
 	}
 
+	if (debug_keys){
+		check_keys=Label::createWithTTF(TTFConfig("fonts/arial.ttf",24),"Keys: ");
+		check_keys->setAnchorPoint(Vec2(0,1));
+		check_keys->setColor(Color3B(0,0,0));
+		check_keys->setPosition(Vec2(0,540));
+		this->addChild(check_keys);
+	}
+
 	this->scheduleUpdate();
 	return true;
 }
@@ -177,6 +184,20 @@ void Bulldoze::kill_bulldozed(){
 	}
 }
 
+void Bulldoze::check_collision(){
+	Size bounds=Director::getInstance()->getVisibleSize();
+	Rect tankhb=get_tankhitbox();
+	Vec2 coords=this->tank->getPosition();
+
+	if (coords.x>tankhb.size.width) left_border_collision=1;
+
+	bool cond=((tankhb.getMinX()<0)&&left_border_collision)||(tankhb.getMinY()<0)||(tankhb.getMaxX()>bounds.width)||(tankhb.getMaxY()>bounds.height);
+	if (cond){
+		this->active=0;
+		this->tank->runAction(TintTo::create(0,Color3B(255,0,0)));
+	}
+}
+
 std::vector<Rect> Bulldoze::get_virushitboxes(){
 	std::vector<Rect> hitbox;
 	Rect coords;
@@ -195,16 +216,23 @@ std::vector<Rect> Bulldoze::get_virushitboxes(){
 }
 
 void Bulldoze::update(float delta){
-	float current_rotation=this->tank->getRotation();
-	if (this->keys%2==1){
-		current_rotation-=this->tank_turnspeed;
+	if (this->active){
+		float current_rotation=this->tank->getRotation();
+		if (this->keys%2==1){
+			current_rotation-=this->tank_turnspeed;
+		}
+		if (this->keys/2==1){
+			current_rotation+=this->tank_turnspeed;
+		}
+		this->tank->setRotation(current_rotation);
+		this->move();
 	}
-	if (this->keys/2==1){
-		current_rotation+=this->tank_turnspeed;
-	}
-	this->tank->setRotation(current_rotation);
-	this->move();
 	this->kill_bulldozed();
+	this->check_collision();
+	if (keys<0) keys=0;
+	if (debug_keys){
+		check_keys->setString(std::string("Keys: ")+std::to_string(keys));
+	}
 }
 
 void Bulldoze::menuCloseCallback(Ref* pSender)
