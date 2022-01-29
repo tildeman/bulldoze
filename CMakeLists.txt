@@ -57,12 +57,10 @@ endif()
 # add cross-platforms source files and header files 
 list(APPEND GAME_SOURCE
      Classes/AppDelegate.cpp
-     Classes/TitleScreen.cpp
      Classes/Bulldoze.cpp
      )
 list(APPEND GAME_HEADER
      Classes/AppDelegate.h
-     Classes/TitleScreen.h
      Classes/Bulldoze.h
      )
 

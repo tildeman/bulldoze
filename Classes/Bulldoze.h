@@ -29,6 +29,27 @@
 #include "ui/CocosGUI.h"
 #include <vector>
 
+class TitleScreen : public cocos2d::Scene
+{
+public:
+	static cocos2d::Scene* createScene();
+
+	virtual bool init();
+
+	cocos2d::Sprite* ball;
+	cocos2d::Sprite* cutscenevirus;
+	cocos2d::ui::Button* start;
+	cocos2d::Label* title;
+	void start_cutscene(Ref* sender, cocos2d::ui::Widget::TouchEventType type);
+	void add_virus(cocos2d::Vec2 c);
+
+	// a selector callback
+	void menuCloseCallback(cocos2d::Ref* pSender);
+	
+	// implement the "static create()" method manually
+	CREATE_FUNC(TitleScreen);
+};
+
 class Bulldoze : public cocos2d::Scene
 {
 public:
@@ -84,6 +105,23 @@ public:
 	
 	// implement the "static create()" method manually
 	CREATE_FUNC(Loss);
+};
+
+class Victory : public cocos2d::Scene
+{
+public:
+	static cocos2d::Scene* createScene();
+
+	std::vector<cocos2d::Vec2> virus_coords;
+	std::vector<cocos2d::Sprite*> viruslist;
+
+	virtual bool init();
+
+	// a selector callback
+	void menuCloseCallback(cocos2d::Ref* pSender);
+	
+	// implement the "static create()" method manually
+	CREATE_FUNC(Victory);
 };
 
 #endif // __BULLDOZE_SCENE_H__

@@ -23,7 +23,7 @@
  ****************************************************************************/
 
 #include "AppDelegate.h"
-#include "TitleScreen.h"
+#include "Bulldoze.h"
 
 // #define USE_AUDIO_ENGINE 1
 
