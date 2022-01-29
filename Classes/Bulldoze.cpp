@@ -31,10 +31,16 @@ using namespace ui;
 
 double pi=3.141592653589793;
 std::vector<Vec2> virus_coords_vc;
+std::vector<std::string> ball_options={"argentina","bahamas","niger","norway","samoa","vietnam"};
+int selected=5;
 
 Scene* TitleScreen::createScene()
 {
 	return TitleScreen::create();
+}
+
+std::string get_ball(){
+	return "balls/"+ball_options[selected]+"ball.png";
 }
 
 // Print useful error message instead of segfaulting when files are not there.
@@ -67,9 +73,15 @@ bool TitleScreen::init()
 	whitebg->setScaleY(540);
 	this->addChild(whitebg);
 
-	this->ball = Sprite::create("nigerball.png");
+	this->ball = Button::create(get_ball(),get_ball(),get_ball());
 	this->ball->setPosition(Vec2(300,150));
 	this->ball->setScale(0.75);
+	this->ball->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type){
+		if (type==Widget::TouchEventType::ENDED){
+			selected=(selected+1)%6;
+			this->ball->loadTextures(get_ball(),get_ball(),get_ball());
+		}
+	});
 	this->addChild(this->ball);
 
 	this->cutscenevirus = Sprite::create("virus_cutscene_with_eyes.png");
@@ -85,7 +97,7 @@ bool TitleScreen::init()
 	this->start->setTitleColor(Color3B(0,0,0));
 
 	this->start->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type){
-		if (type==Widget::TouchEventType::ENDED){
+		if (type==Widget::TouchEventType::BEGAN){
 			this->start_cutscene(sender,type);
 		}
 	});
@@ -419,7 +431,7 @@ bool Loss::init(){
 	tank->setRotation(10);
 	this->addChild(tank);
 
-	Sprite* ball=Sprite::create("nigerball.png");
+	Sprite* ball=Sprite::create(get_ball());
 	ball->setPosition(Vec2(200,80));
 	ball->setScaleY(0.25);
 	this->addChild(ball);
@@ -472,7 +484,7 @@ bool Victory::init(){
 		this->addChild(viruslist[i]);
 	}
 
-	Sprite* ball=Sprite::create("nigerball.png");
+	Sprite* ball=Sprite::create(get_ball());
 	ball->setPosition(Vec2(-200,200));
 	ball->setScale(0.75);
 	addChild(ball);

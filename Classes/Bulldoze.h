@@ -36,7 +36,7 @@ public:
 
 	virtual bool init();
 
-	cocos2d::Sprite* ball;
+	cocos2d::ui::Button* ball;
 	cocos2d::Sprite* cutscenevirus;
 	cocos2d::ui::Button* start;
 	cocos2d::Label* title;
