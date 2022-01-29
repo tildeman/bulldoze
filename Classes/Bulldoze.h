@@ -45,14 +45,18 @@ public:
 	bool debug_keys=0;
 	bool active=1;
 	bool left_border_collision=0;
+	bool return_to_start=0;
 	std::vector<cocos2d::Sprite*> viruslist;
 	cocos2d::Sprite* tank;
+	cocos2d::Sprite* greenbar;
 	std::vector<cocos2d::Sprite*> tank_coords;
 	std::vector<std::vector<cocos2d::Sprite*>> virus_coords;
+	std::vector<bool> virus_is_dead;
 	cocos2d::Label* check_keys;
 	void move();
 	void kill_bulldozed();
 	void check_collision();
+	int count_dead();
 	cocos2d::Rect get_tankhitbox();
 	std::vector<cocos2d::Rect> get_virushitboxes();
 
@@ -66,6 +70,20 @@ public:
 	
 	// implement the "static create()" method manually
 	CREATE_FUNC(Bulldoze);
+};
+
+class Loss : public cocos2d::Scene
+{
+public:
+	static cocos2d::Scene* createScene();
+
+	virtual bool init();
+
+	// a selector callback
+	void menuCloseCallback(cocos2d::Ref* pSender);
+	
+	// implement the "static create()" method manually
+	CREATE_FUNC(Loss);
 };
 
 #endif // __BULLDOZE_SCENE_H__

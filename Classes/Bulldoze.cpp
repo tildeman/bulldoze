@@ -48,6 +48,12 @@ static void problemLoading(const char* filename)
 	printf("Depending on how you compiled you might have to add 'Resources/' in front of filenames in BulldozeScene.cpp\n");
 }
 
+int Bulldoze::count_dead(){
+	int c=0;
+	for (int i=0;i<this->virus_count;i++) c+=this->virus_is_dead[i];
+	return c;
+}
+
 void Bulldoze::key_is_pressed(EventKeyboard::KeyCode key,Event* event){
 	if (key==EventKeyboard::KeyCode::KEY_LEFT_ARROW){
 		this->keys+=1;
@@ -89,17 +95,26 @@ bool Bulldoze::init()
 	whitebg->setScaleY(540);
 	this->addChild(whitebg);
 
+	this->greenbar=Sprite::create("white.png");
+	this->greenbar->setColor(Color3B(0,255,0));
+	this->greenbar->setScale(2,540);
+	this->greenbar->setAnchorPoint(Vec2(0,0));
+	this->greenbar->setVisible(0);
+	this->addChild(greenbar);
+
 	std::random_device virus_pos;
 	std::mt19937 gen(virus_pos());
 	std::uniform_int_distribution<int> xpos(60,880);
 	std::uniform_int_distribution<int> ypos(60,460);
 
 	this->viruslist.resize(this->virus_count);
+	this->virus_is_dead.resize(this->virus_count);
 	for (int i=0;i<this->virus_count;i++){
 		this->viruslist[i]=Sprite::create("virus.png");
 		this->viruslist[i]->setScale(0.75);
 		this->viruslist[i]->setPosition(Vec2(xpos(gen),ypos(gen)));
 		this->addChild(this->viruslist[i]);
+		this->virus_is_dead[i]=0;
 	}
 
 	if (this->virus_dbhb){
@@ -140,7 +155,7 @@ bool Bulldoze::init()
 	}
 
 	if (debug_keys){
-		check_keys=Label::createWithTTF(TTFConfig("fonts/arial.ttf",24),"Keys: ");
+		check_keys=Label::createWithTTF(TTFConfig("fonts/arial.ttf",24),"Bulldoze count: ");
 		check_keys->setAnchorPoint(Vec2(0,1));
 		check_keys->setColor(Color3B(0,0,0));
 		check_keys->setPosition(Vec2(0,540));
@@ -179,7 +194,8 @@ void Bulldoze::kill_bulldozed(){
 	for (int i=0;i<virus_count;i++){
 		union_area=intersect(tankhb,virushb[i]);
 		if (tankhb.intersectsRect(virushb[i])&&union_area.size.width*union_area.size.height>=8000){
-			viruslist[i]->setTexture("virus_dead.png");
+			this->viruslist[i]->setTexture("virus_dead.png");
+			this->virus_is_dead[i]=1;
 		}
 	}
 }
@@ -189,12 +205,16 @@ void Bulldoze::check_collision(){
 	Rect tankhb=get_tankhitbox();
 	Vec2 coords=this->tank->getPosition();
 
-	if (coords.x>tankhb.size.width) left_border_collision=1;
+	if (coords.x>tankhb.size.width&&(!return_to_start)) left_border_collision=1;
 
 	bool cond=((tankhb.getMinX()<0)&&left_border_collision)||(tankhb.getMinY()<0)||(tankhb.getMaxX()>bounds.width)||(tankhb.getMaxY()>bounds.height);
 	if (cond){
 		this->active=0;
 		this->tank->runAction(TintTo::create(0,Color3B(255,0,0)));
+		auto tomain=CallFunc::create([=](){
+			Director::getInstance()->replaceScene(TransitionFade::create(1,Loss::createScene()));
+		});
+		this->runAction(Sequence::create(DelayTime::create(1),tomain,nullptr));
 	}
 }
 
@@ -228,14 +248,73 @@ void Bulldoze::update(float delta){
 		this->move();
 	}
 	this->kill_bulldozed();
-	this->check_collision();
+	if (active) this->check_collision();
 	if (keys<0) keys=0;
 	if (debug_keys){
-		check_keys->setString(std::string("Keys: ")+std::to_string(keys));
+		check_keys->setString(std::string("Bulldoze count: ")+std::to_string(count_dead()));
+	}
+	if (count_dead()==this->virus_count&&(!this->return_to_start)){
+		this->return_to_start==1;
+		this->greenbar->setVisible(1);
+		this->left_border_collision=0;
 	}
 }
 
 void Bulldoze::menuCloseCallback(Ref* pSender)
+{
+	//Close the cocos2d-x game scene and quit the application
+	Director::getInstance()->end();
+
+	/*To navigate back to native iOS screen(if present) without quitting the application  ,do not use Director::getInstance()->end() as given above,instead trigger a custom event created in RootViewController.mm as below*/
+
+	//EventCustom customEndEvent("game_scene_close_event");
+	//_eventDispatcher->dispatchEvent(&customEndEvent);
+
+
+}
+
+Scene* Loss::createScene()
+{
+	return Loss::create();
+}
+
+bool Loss::init(){
+	if ( !Scene::init() )
+	{
+		return false;
+	}
+
+	Sprite* whitebg = Sprite::create("white.png");
+	whitebg->setAnchorPoint(Vec2(0,0));
+	whitebg->setScaleX(960);
+	whitebg->setScaleY(540);
+	this->addChild(whitebg);
+	
+	Sprite* vs_loss=Sprite::create("virus_cutscene_with_eyes.png");
+	vs_loss->setScale(1.75);
+	vs_loss->setPosition(Vec2(650,270));
+	this->addChild(vs_loss);
+
+	Sprite* tank=Sprite::create("tank.png");
+	tank->setPosition(Vec2(200,250));
+	tank->setRotation(10);
+	this->addChild(tank);
+
+	Sprite* ball=Sprite::create("nigerball.png");
+	ball->setPosition(Vec2(200,80));
+	ball->setScaleY(0.25);
+	this->addChild(ball);
+
+	TTFConfig lcfg=TTFConfig("fonts/ComicNeue-Bold.ttf",84);
+	Label* loss=Label::createWithTTF(lcfg,"Loss :c");
+	loss->setColor(Color3B(0,0,0));
+	loss->setPosition(Vec2(200,450));
+	this->addChild(loss);
+
+	return true;
+}
+
+void Loss::menuCloseCallback(Ref* pSender)
 {
 	//Close the cocos2d-x game scene and quit the application
 	Director::getInstance()->end();
